@@ -14,8 +14,8 @@ cp -RP apps/backend/. apps/backend-copy/
 
 # replace workspace symlink with actual core build output
 rm -rf apps/backend/.vercel/output/functions/api.func/node_modules/@stats-organization
-mkdir -p apps/backend/.vercel/output/functions/api.func/node_modules/@stats-organization/github-readme-stats-core
-cp -RP packages/core/build/. apps/backend/.vercel/output/functions/api.func/node_modules/@stats-organization/github-readme-stats-core/
+mkdir -p apps/backend/.vercel/output/functions/api.func/node_modules/@stats-organization/github-readme-stats-core/build
+cp -RP packages/core/build/. apps/backend/.vercel/output/functions/api.func/node_modules/@stats-organization/github-readme-stats-core/build/
 cp packages/core/package.json apps/backend/.vercel/output/functions/api.func/node_modules/@stats-organization/github-readme-stats-core/
 
 cp -RP apps/backend/.vercel/output/functions/api.func/_dot_vercel_copy/output apps/backend/.vercel/
