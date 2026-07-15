@@ -46,24 +46,33 @@ export function HomeScreen({ stage, setStage }: HomeScreenProps): JSX.Element {
   const [selectedCard, setSelectedCard] = useState<CardType>(CardType.STATS);
 
   // for stages two and three
-  const [cardOptions, setCardOptions] = useState(() =>
+  const [cardOptions, setCardOptions] = useState<CardOptions>(() =>
     getDefaultCardOptions(userId),
   );
+
+  // Always keep selectedUserId in sync with the logged-in userId, unless the
+  // user explicitly typed a different username in the customize form.
+  // We compare against the previous userId to detect changes.
+  const [prevUserId, setPrevUserId] = useState(userId);
+  if (userId !== prevUserId) {
+    setPrevUserId(userId);
+    setCardOptions((prev) => ({ ...prev, selectedUserId: userId }));
+  }
+
+  // When the user just logged in, the cardOptions.selectedUserId still has the
+  // previous value (one-render lag). Compute an effective userId that always
+  // reflects the logged-in identity, but only when the user hasn't explicitly
+  // typed a different username (i.e. selectedUserId was the previous userId).
+  const effectiveUserId =
+    cardOptions.selectedUserId === prevUserId || cardOptions.selectedUserId === DEMO_USER
+      ? userId
+      : cardOptions.selectedUserId;
 
   const setCardOption = useCallback<
     <K extends keyof CardOptions>(key: K, value: CardOptions[K]) => void
   >((key, value) => {
     setCardOptions((prev) => ({ ...prev, [key]: value }));
   }, []);
-
-  // Reset the selected user to the resolved account id when it changes,
-  // adjusting state during render rather than in an effect:
-  // https://react.dev/learn/you-might-not-need-an-effect#adjusting-some-state-when-a-prop-changes
-  const [prevUserId, setPrevUserId] = useState(userId);
-  if (userId !== prevUserId) {
-    setPrevUserId(userId);
-    setCardOptions((prev) => ({ ...prev, selectedUserId: userId }));
-  }
 
   const { isDark } = useTheme();
   const [theme, setTheme] = useState(isDark ? "dark" : "default");
@@ -101,8 +110,12 @@ export function HomeScreen({ stage, setStage }: HomeScreenProps): JSX.Element {
   // string), but memoizing keeps it safe to pass as a prop if any of them are
   // ever wrapped in React.memo.
   const cardBuilder = useMemo(
-    () => buildCardUrl(userId, selectedCard, cardOptions),
-    [userId, selectedCard, cardOptions],
+    () =>
+      buildCardUrl(effectiveUserId, selectedCard, {
+        ...cardOptions,
+        selectedUserId: effectiveUserId,
+      }),
+    [effectiveUserId, selectedCard, cardOptions],
   );
 
   // Preview builder for the customize stage, dark-themed to match the surroundings.
